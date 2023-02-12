@@ -5,6 +5,8 @@ import { LoginUserDto } from 'src/auth/dtos/login.dto';
 import { User, UserDocument } from './user.entity';
 import bcrypt from 'bcryptjs';
 
+const SALT_WORK_FACTOR = 10;
+
 @Injectable()
 export class UserEntityService {
   constructor(
@@ -12,12 +14,22 @@ export class UserEntityService {
     private userRepository: Model<UserDocument>,
   ) {}
 
+  async findUsers() {
+    return await this.userRepository.find();
+  }
+
   async findById(_id: string | mongoose.Types.ObjectId) {
     return await this.userRepository.findById(_id);
   }
 
   async findUserByUsername(username: string) {
     return await this.userRepository.findOne({ username });
+  }
+
+  async create(user: User) {
+    user.password = await bcrypt.hash(user.password, SALT_WORK_FACTOR);
+
+    return await this.userRepository.create(user);
   }
 
   async validatePassword(userPassword: string, comparePassword: string) {
